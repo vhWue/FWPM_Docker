@@ -18,8 +18,9 @@ services:
     image: mariadb
     restart: always
     volumes:
-      - ./fussballstatistiken.sql:/docker-entrypoint-initdb.d
+      - ./data:/docker-entrypoint-initdb.d
     environment:
+      MYSQL_DATABASE: fuba
       MYSQL_ROOT_PASSWORD: changeMe
     ports:
       - "3306:3306"
