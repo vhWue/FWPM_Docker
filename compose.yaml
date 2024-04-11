@@ -14,6 +14,16 @@ services:
     ports:
       - 5555:5555
 
+  db:
+    image: mariadb
+    restart: always
+    volumes:
+      - ./fussballstatistiken.sql:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: changeMe
+    ports:
+      - "3306:3306"
+
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
 # start the database before your application. The `db-data` volume persists the
