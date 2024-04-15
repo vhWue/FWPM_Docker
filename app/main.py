@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .routers.club import router as club_router
+from routers.club import router as club_router
 
 app = FastAPI()
 
