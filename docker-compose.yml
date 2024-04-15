@@ -10,8 +10,7 @@ services:
       MYSQL_USER: admin # Benutzername, den Sie erstellen möchten
       MYSQL_PASSWORD: admin # Passwort für den Benutzer
     volumes:
-
-      - ./fu__ballstatistiken.sql:/docker-entrypoint-initdb.d/fu__ballstatistiken.sql # Stellen Sie sicher, dass Ihr SQL-Dump als 'dump.sql' im './' Verzeichnis liegt
+      - data/fussballstatistiken.sql:/docker-entrypoint-initdb.d/fussballstatistiken.sql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -33,6 +32,3 @@ services:
     command: sh -c "pip install --no-cache-dir --upgrade -r /code/requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 80"
     ports:
       - '8000:80'
-# Volumes definieren, um die Daten zu persistieren
-volumes:
-  data: {}
