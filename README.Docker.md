@@ -20,3 +20,4 @@ docs for more detail on building and pushing.
 
 ### References
 * [Docker's Python guide](https://docs.docker.com/language/python/)
+* [Docker compose file reference](https://docs.docker.com/compose/compose-file/compose-file-v3/)
