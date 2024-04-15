@@ -2,13 +2,13 @@ version: '3.1'
 
 services:
   db:
-    image: mariadb:10.6.16
+    image: mariadb:11
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root # Passwort für den Root-Benutzer, ändern Sie es entsprechend
-      MYSQL_DATABASE: d03e94c3 # Name der Datenbank, die erstellt werden soll
-      MYSQL_USER: admin # Benutzername, den Sie erstellen möchten
-      MYSQL_PASSWORD: admin # Passwort für den Benutzer
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: d03e94c3
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
     volumes:
       - ./data/fussballstatistiken.sql:/docker-entrypoint-initdb.d/fussballstatistiken.sql
 
@@ -16,19 +16,16 @@ services:
     image: phpmyadmin/phpmyadmin
     restart: always
     environment:
-      PMA_HOST: db # Verbindet phpMyAdmin mit dem MariaDB-Server
-      PMA_PORT: 3306 # Standard MySQL/MariaDB-Port
-      PMA_ARBITRARY: 1 # Ermöglicht die Eingabe des MySQL-Servers in der Anmeldung
-      PHP_INI_SCAN_DIR: /usr/local/etc/php/conf.d/ # Konfigurationspfad für php.ini
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+      PHP_INI_SCAN_DIR: /usr/local/etc/php/conf.d/
     ports:
-      - '8080:80' # phpMyAdmin wird auf Port 8080 des Hosts verfügbar gemacht
+      - '8080:80'
 
   fastapi:
-    image: python:3.9
-    volumes:
-      - ./app:/code/app
-      - ./requirements.txt:/code/requirements.txt
-    working_dir: /code
-    command: sh -c "pip install --no-cache-dir --upgrade -r /code/requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 80"
+    build: .
+    restart: always
+    container_name: fastapi
     ports:
-      - '8000:80'
+      - '8000:8000'
