@@ -1,31 +1,16 @@
 version: '3.1'
 
 services:
-  db:
-    image: mariadb:11
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: d03e94c3
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
-    volumes:
-      - ./data/fussballstatistiken.sql:/docker-entrypoint-initdb.d/fussballstatistiken.sql
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-      PHP_INI_SCAN_DIR: /usr/local/etc/php/conf.d/
-    ports:
-      - '8080:80'
-
   fastapi:
-    build: .
+    build: ./app/
     restart: always
-    container_name: fastapi
+    container_name: fuba_api
     ports:
       - '8000:8000'
+
+  mariadb:
+    build: ./db/
+    restart: always
+    container_name: fuba_db
+    ports:
+      - '3306:3306'

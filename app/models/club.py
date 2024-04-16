@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from sqlalchemy import Integer, String, Column
+from sqlalchemy.orm import relationship
+from config.db import Base
 
 class Club(Base):
-    __tablename__ = 'clubs'
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), index=True)
-    # Add more columns as needed
+   __tablename__ = 'clubs'
+   
+   id = Column(Integer, primary_key=True, index=True)
+   name = Column(String(50), index=True)
+   
+   players = relationship("Player", back_populates="club")

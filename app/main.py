@@ -1,11 +1,15 @@
 from fastapi import FastAPI
+from routes.index import player, club
+from config.db import Base, engine
 
-from routers.club import router as club_router
+#Create the tables according to the models (SQLite)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.include_router(club_router)
+app.include_router(player)
+app.include_router(club)
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+   return {"msg": "Hello football lovers :D"}
