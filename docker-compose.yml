@@ -1,16 +1,33 @@
-version: '3.1'
+version: '3.8'
 
 services:
   fastapi:
-    build: ./app/
+    build: ./app
     restart: always
     container_name: fuba_api
     ports:
       - '8000:8000'
+    networks:
+      - api
+    depends_on:
+      mariadb:
+        condition: service_healthy
 
   mariadb:
-    build: ./db/
+    build: ./db
     restart: always
     container_name: fuba_db
-    ports:
-      - '3306:3306'
+    environment:
+      MYSQL_DATABASE: fuba
+    networks:
+      - api
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
+      start_period: 5s
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+networks:
+  api:
+    driver: bridge
