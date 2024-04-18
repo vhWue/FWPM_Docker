@@ -1,4 +1,4 @@
-FROM mariadb:11
+FROM mariadb:11.3
 
 ENV MARIADB_ROOT_PASSWORD pwroot
 
