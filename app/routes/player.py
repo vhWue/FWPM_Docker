@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from config.db import get_db
@@ -10,8 +11,6 @@ player = APIRouter()
 @player.get("/players")
 async def get_players(db: Session = Depends(get_db)):
     players = db.query(Player).all()
-    if not players:
-        return JSONResponse(content={"msg": "No Players"}, status_code=status.HTTP_404_NOT_FOUND)
     return players
 
 @player.get("/player/{id}")
@@ -21,7 +20,7 @@ async def get_player(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Player not found")
     return player_found
 
-@player.post("/player")
+@player.post("/players")
 async def create_player(name: str, club_id: int, db: Session = Depends(get_db)):
     if name and db.query(Club).filter(Club.id == club_id).first():
         new_player = Player(
@@ -32,11 +31,11 @@ async def create_player(name: str, club_id: int, db: Session = Depends(get_db)):
         db.commit()
         return JSONResponse(content={"msg": "Player updated"})
     else:
-        return JSONResponse(content={"msg": "Missing/Wrong arguments"},
-                            status_code=status.HTTP_406_NOT_ACCEPTABLE)
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Missing/Wrong arguments")
 
 
-@player.put("/player/{id}")
+@player.put("/players/{id}")
 async def update_player(id: int, name: str = None, club_id: int = None, db: Session = Depends(get_db)):
     try:
         player = db.query(Player).filter(Player.id == id).first()
@@ -52,11 +51,11 @@ async def update_player(id: int, name: str = None, club_id: int = None, db: Sess
 
     except Exception as e:
         db.rollback()
-        response = {"Update_Failed": e}
-        return JSONResponse(content=response, status_code=status.HTTP_418_IM_A_TEAPOT)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Update failed: {e}")
 
 
-@player.delete("/player/{id}")
+@player.delete("/players/{id}")
 async def delete_player(id: int, db: Session = Depends(get_db)):
     try:
         player = db.query(Player).filter(Player.id == id).first()
@@ -66,9 +65,10 @@ async def delete_player(id: int, db: Session = Depends(get_db)):
             db.commit()
             return JSONResponse(content={"msg": "Player deleted"})
         else:
-            return JSONResponse(content={"msg": "Player not found!"})
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Player not found")
 
     except Exception as e:
         db.rollback()
-        response = {"Delete_Failed": e}
-        return JSONResponse(content=response, status_code=status.HTTP_418_IM_A_TEAPOT)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Delete failed: {e}")

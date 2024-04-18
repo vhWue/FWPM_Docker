@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -11,12 +11,10 @@ club = APIRouter()
 @club.get("/clubs")
 async def get_clubs(db: Session = Depends(get_db)):
     clubs = db.query(Club).all()
-    if not clubs:
-        return JSONResponse(content={"msg": "No clubs"}, status_code=status.HTTP_404_NOT_FOUND)
     return clubs
 
 
-@club.post("/club")
+@club.post("/clubs")
 async def create_club(name: str, db: Session = Depends(get_db)):
     if name:
         new_club = Club(
@@ -24,13 +22,12 @@ async def create_club(name: str, db: Session = Depends(get_db)):
         )
         db.add(new_club)
         db.commit()
-        return db.query(Club).filter(Club.name == new_club.name).first()
     else:
-        return JSONResponse(content={"msg": "Missing/Wrong arguments"},
-                            status_code=status.HTTP_406_NOT_ACCEPTABLE)
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Missing/Wrong arguments")
 
 
-@club.put("/club/{id}")
+@club.put("/clubs/{id}")
 async def update_club(id: int, name: str = None, db: Session = Depends(get_db)):
     try:
         club = db.query(Club).filter(Club.id == id).first()
@@ -43,10 +40,11 @@ async def update_club(id: int, name: str = None, db: Session = Depends(get_db)):
 
     except Exception as e:
         db.rollback()
-        return JSONResponse(content={"Update_Failed": e}, status_code=status.HTTP_418_IM_A_TEAPOT)
+        raise HTTPException(status_code=status. HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Update_Failed: {e}")
 
 
-@club.delete("/club/{id}")
+@club.delete("/clubs/{id}")
 async def delete_club(id: int, db: Session = Depends(get_db)):
     try:
         club = db.query(Club).filter_by(id=id).first()
@@ -57,9 +55,10 @@ async def delete_club(id: int, db: Session = Depends(get_db)):
             db.commit()
             return JSONResponse(content={"msg": "Club deleted"})
         else:
-            return JSONResponse(content={"msg": "Club not found or still associated!"})
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Club not found or still associated!")
 
     except Exception as e:
         db.rollback()
-        response = {"Delete_Failed": e}
-        return JSONResponse(content=response, status_code=status.HTTP_418_IM_A_TEAPOT)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Delete_Failed: {e}")
