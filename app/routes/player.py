@@ -2,6 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+
+import schemas.player
 from config.db import get_db
 from models.index import Player, Club
 
@@ -21,18 +23,15 @@ async def get_player(id: int, db: Session = Depends(get_db)):
     return player_found
 
 @player.post("/players")
-async def create_player(name: str, club_id: int, db: Session = Depends(get_db)):
-    if name and db.query(Club).filter(Club.id == club_id).first():
-        new_player = Player(
-            name=name,
-            club_id=club_id
-        )
-        db.add(new_player)
-        db.commit()
-        return JSONResponse(content={"msg": "Player updated"})
-    else:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            detail="Missing/Wrong arguments")
+async def create_player(player: schemas.player.Player, db: Session = Depends(get_db)):
+    db_player = Player(
+        name=player.name,
+        club_id=player.club_id
+    )
+    db.add(db_player)
+    db.commit()
+    db.refresh(db_player)
+    return db_player
 
 
 @player.put("/players/{id}")
