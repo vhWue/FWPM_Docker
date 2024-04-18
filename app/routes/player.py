@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from config.db import get_db
@@ -14,6 +14,12 @@ async def get_players(db: Session = Depends(get_db)):
         return JSONResponse(content={"msg": "No Players"}, status_code=status.HTTP_404_NOT_FOUND)
     return players
 
+@player.get("/player/{id}")
+async def get_player(id: int, db: Session = Depends(get_db)):
+    player_found = db.query(Player).filter(Player.id == id).first()
+    if not player_found:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Player not found")
+    return player_found
 
 @player.post("/player")
 async def create_player(name: str, club_id: int, db: Session = Depends(get_db)):
