@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+import models.club
+import schemas.club
 from config.db import get_db
 from models.index import Club
 
@@ -15,16 +17,12 @@ async def get_clubs(db: Session = Depends(get_db)):
 
 
 @club.post("/clubs")
-async def create_club(name: str, db: Session = Depends(get_db)):
-    if name:
-        new_club = Club(
-            name=name
-        )
-        db.add(new_club)
-        db.commit()
-    else:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            detail="Missing/Wrong arguments")
+async def create_club(club: schemas.club.Club, db: Session = Depends(get_db)):
+    db_club = models.club.Club(name=club.name)
+    db.add(db_club)
+    db.commit()
+    db.refresh(db_club)
+    return db_club
 
 
 @club.put("/clubs/{id}")
