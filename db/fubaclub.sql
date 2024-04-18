@@ -24,7 +24,7 @@ INSERT INTO clubs (name) VALUES
     ('Real Madrid'),
     ('FC Barcelona');
 
-INSERT INTO players (name, id) VALUES
+INSERT INTO players (name, club_id) VALUES
     ('Cristiano Ronaldo', 2), -- Ronaldo plays for Real Madrid
     ('Lionel Messi', 3),       -- Messi plays for FC Barcelona
     ('Paul Pogba', 1);         -- Pogba plays for Manchester United
