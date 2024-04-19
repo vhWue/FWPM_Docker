@@ -1,6 +1,4 @@
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlmodel import Session, create_engine, SQLModel
 
 DB_USER = 'root'
 DB_PASSWORD = 'pwroot'
@@ -9,13 +7,9 @@ DB_NAME = 'fuba'
 URL_DATABASE = f'mariadb+mysqldb://{DB_USER}:{DB_PASSWORD}@{DB_HOSTNAME}/{DB_NAME}'
 
 engine = create_engine(URL_DATABASE, echo=True, pool_recycle=3600)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+SQLModel.metadata.create_all(engine)
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_session():
+    with Session(engine) as session:
+        yield session

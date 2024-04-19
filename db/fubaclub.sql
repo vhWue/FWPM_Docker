@@ -5,17 +5,17 @@ CREATE DATABASE IF NOT EXISTS fuba;
 USE fuba;
 
 -- Table for Football Clubs
-CREATE TABLE clubs (
+CREATE TABLE club (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 );
 
 -- Table for Players
-CREATE TABLE players (
+CREATE TABLE player (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     club_id INT,
-    FOREIGN KEY (club_id) REFERENCES clubs(id)
+    FOREIGN KEY (club_id) REFERENCES club(id)
 );
 
 -- Example Data Insertion (Optional)

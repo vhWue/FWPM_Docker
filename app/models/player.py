@@ -1,13 +1,13 @@
-from sqlalchemy import ForeignKey, Integer, String, Column
-from sqlalchemy.orm import relationship
+from typing import Optional
 
-from config.db import Base
+from sqlmodel import SQLModel, Field, Relationship
 
-class Player(Base):
-   __tablename__ = 'players'
-   
-   id = Column(Integer, primary_key=True, index=True)
-   name = Column(String(50), index=True)
-   club_id = Column(Integer, ForeignKey("clubs.id"))
-   
-   club = relationship("Club", back_populates="players")
+from models.index import Club
+
+
+class Player(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    name: str = Field(index=True)
+
+    club_id: Optional[int] = Field(default=None, foreign_key="club.id")
+    club: Optional[Club] = Relationship(back_populates="players")

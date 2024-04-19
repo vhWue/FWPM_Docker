@@ -1,12 +1,10 @@
-from sqlalchemy import Integer, String, Column
-from sqlalchemy.orm import relationship
-from config.db import Base
+from typing import Optional
+
+from sqlmodel import Field, SQLModel, Relationship
 
 
-class Club(Base):
-    __tablename__ = 'clubs'
+class Club(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    name: str
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), index=True)
-
-    players = relationship("Player", back_populates="club")
+    players: list["Player"] = Relationship(back_populates="club")

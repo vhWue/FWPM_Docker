@@ -2,31 +2,28 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-import models.club
-import schemas.club
-from config.db import get_db
+from config.db import get_session
 from models.index import Club
 
 club = APIRouter()
 
 
-@club.get("/clubs")
-async def get_clubs(db: Session = Depends(get_db)):
+@club.get("/clubs", response_model=list[Club])
+async def get_clubs(db: Session = Depends(get_session)):
     clubs = db.query(Club).all()
     return clubs
 
 
-@club.post("/clubs")
-async def create_club(club: schemas.club.Club, db: Session = Depends(get_db)):
-    db_club = models.club.Club(name=club.name)
-    db.add(db_club)
+@club.post("/clubs", response_model=Club)
+async def create_club(club: Club, db: Session = Depends(get_session)):
+    db.add(club)
     db.commit()
-    db.refresh(db_club)
-    return db_club
+    db.refresh(club)
+    return club
 
 
 @club.put("/clubs/{id}")
-async def update_club(id: int, name: str = None, db: Session = Depends(get_db)):
+async def update_club(id: int, name: str = None, db: Session = Depends(get_session)):
     try:
         club = db.query(Club).filter(Club.id == id).first()
 
@@ -43,7 +40,7 @@ async def update_club(id: int, name: str = None, db: Session = Depends(get_db)):
 
 
 @club.delete("/clubs/{id}")
-async def delete_club(id: int, db: Session = Depends(get_db)):
+async def delete_club(id: int, db: Session = Depends(get_session)):
     try:
         club = db.query(Club).filter_by(id=id).first()
         players = club.players

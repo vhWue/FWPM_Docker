@@ -1,9 +1,6 @@
 from fastapi import FastAPI
-from routes.index import player, club
-from config.db import Base, engine
 
-#Create the tables according to the models (SQLite)
-Base.metadata.create_all(bind=engine)
+from routes.index import player, club
 
 app = FastAPI()
 
