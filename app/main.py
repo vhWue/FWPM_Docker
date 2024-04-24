@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 
-from routes.index import player, club
+from routes import club, player
 
 app = FastAPI()
 
-app.include_router(player)
-app.include_router(club)
+app.include_router(club.router, prefix="/clubs", tags=["clubs"])
+app.include_router(player.router, prefix="/players", tags=["players"])
+
 
 @app.get("/")
 def read_root():
-   return {"msg": "Hello football lovers :D"}
+    return {"msg": "Hello football lovers :D"}

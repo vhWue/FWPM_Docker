@@ -1,20 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
 
 from config.db import get_session
-from models.index import Club
+from models.club import Club, ClubUpdate
 
-club = APIRouter()
+router = APIRouter()
 
 
-@club.get("/clubs", response_model=list[Club])
-async def get_clubs(db: Session = Depends(get_session)):
-    clubs = db.query(Club).all()
+@router.get("/", response_model=list[Club])
+async def get_clubs(offset: int = 0, limit: int = 20, db: Session = Depends(get_session)):
+    clubs = db.exec(select(Club).offset(offset).limit(limit)).all()
     return clubs
 
 
-@club.post("/clubs", response_model=Club)
+@router.get("/{club_id}", response_model=Club)
+async def get_club(club_id: int, db: Session = Depends(get_session)):
+    club = db.get(Club, club_id)
+    if not club:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
+    return club
+
+
+@router.post("/", response_model=Club)
 async def create_club(club: Club, db: Session = Depends(get_session)):
     db.add(club)
     db.commit()
@@ -22,37 +29,37 @@ async def create_club(club: Club, db: Session = Depends(get_session)):
     return club
 
 
-@club.put("/clubs/{id}")
-async def update_club(id: int, name: str = None, db: Session = Depends(get_session)):
+@router.put("/{club_id}")
+async def update_club(club_id: int, club: ClubUpdate, db: Session = Depends(get_session)):
+    db_club = db.get(Club, club_id)
+    if not db_club:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
+
     try:
-        club = db.query(Club).filter(Club.id == id).first()
-
-        if club and name:
-            club.name = name
-            db.commit()
-
-        return JSONResponse(content={"msg": "Club updated"})
-
+        db_club.sqlmodel_update(club.model_dump(exclude_unset=False))
+        db.add(db_club)
+        db.commit()
+        db.refresh(db_club)
+        return db_club
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=status. HTTP_500_INTERNAL_SERVER_ERROR,
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Update_Failed: {e}")
 
 
-@club.delete("/clubs/{id}")
-async def delete_club(id: int, db: Session = Depends(get_session)):
+@router.delete("/{club_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_club(club_id: int, db: Session = Depends(get_session)):
+    club = db.get(Club, club_id)
+    if not club:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
+
+    players = club.players
+    if not len(players) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Club still has associated players!")
     try:
-        club = db.query(Club).filter_by(id=id).first()
-        players = club.players
-
-        if club and not players:
-            db.delete(club)
-            db.commit()
-            return JSONResponse(content={"msg": "Club deleted"})
-        else:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Club not found or still associated!")
-
+        db.delete(club)
+        db.commit()
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
