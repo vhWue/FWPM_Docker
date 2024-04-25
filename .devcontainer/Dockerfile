@@ -1,7 +1,7 @@
 ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim as base
 
-RUN apt update && apt install -y sudo && \
+RUN apt-get update && apt-get install -y libmariadb3 libmariadb-dev gcc && \
 pip install --upgrade pip
 
 #Create virtual env and activate it
@@ -10,5 +10,5 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 #Install dependencies and remove the requirements file
-COPY requirements.txt /tmp/
+COPY /app/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
