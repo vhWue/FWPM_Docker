@@ -9,6 +9,9 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+#to use sqlite db for development purpose
+ENV APP_ENV=dev
+
 #Install dependencies and remove the requirements file
 COPY /app/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
