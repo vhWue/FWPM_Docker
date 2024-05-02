@@ -3,19 +3,19 @@ from sqlmodel import Session, select
 
 from config.db import get_session
 from models.club import Club, ClubUpdate
+from crud import club as crud
 
 router = APIRouter()
 
 
 @router.get("/", response_model=list[Club])
 async def get_clubs(offset: int = 0, limit: int = 20, db: Session = Depends(get_session)):
-    clubs = db.exec(select(Club).offset(offset).limit(limit)).all()
-    return clubs
+    return crud.get_clubs(db, offset, limit)
 
 
 @router.get("/{club_id}", response_model=Club)
 async def get_club(club_id: int, db: Session = Depends(get_session)):
-    club = db.get(Club, club_id)
+    club = crud.get_club(db, club_id)
     if not club:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
     return club
@@ -23,33 +23,25 @@ async def get_club(club_id: int, db: Session = Depends(get_session)):
 
 @router.post("/", response_model=Club)
 async def create_club(club: Club, db: Session = Depends(get_session)):
-    db.add(club)
-    db.commit()
-    db.refresh(club)
-    return club
+    return crud.create_club(db, club)
 
 
 @router.put("/{club_id}")
 async def update_club(club_id: int, club: ClubUpdate, db: Session = Depends(get_session)):
-    db_club = db.get(Club, club_id)
+    db_club = crud.get_club(db, club_id)
     if not db_club:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
 
     try:
-        db_club.sqlmodel_update(club.model_dump(exclude_unset=False))
-        db.add(db_club)
-        db.commit()
-        db.refresh(db_club)
-        return db_club
+        return crud.update_club(db, db_club, club)
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Update_Failed: {e}")
+                            detail=f"Update failed: Database error")
 
 
 @router.delete("/{club_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_club(club_id: int, db: Session = Depends(get_session)):
-    club = db.get(Club, club_id)
+    club = crud.get_club(db, club_id)
     if not club:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
 
@@ -58,9 +50,7 @@ async def delete_club(club_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Club still has associated players!")
     try:
-        db.delete(club)
-        db.commit()
+        crud.delete_club(db, club)
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f"Delete_Failed: {e}")
+                            detail=f"Delete failed: Database error")
