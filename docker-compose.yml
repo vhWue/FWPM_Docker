@@ -21,6 +21,8 @@ services:
       MYSQL_DATABASE: fuba
     networks:
       - api
+    volumes:
+      - myfubadb:/var/lib/mysql
     healthcheck:
       test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
       start_period: 5s
@@ -33,3 +35,5 @@ services:
 networks:
   api:
     driver: bridge
+volumes:
+  myfubadb:
