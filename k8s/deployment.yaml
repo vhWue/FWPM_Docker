@@ -40,6 +40,7 @@ spec:
         image: localhost:5005/fwpm_docker-fastapi:latest
         ports:
         - containerPort: 8000
+          name: http
         env:
           - name: DB_HOST
             valueFrom:
@@ -51,6 +52,19 @@ spec:
               secretKeyRef:
                 name: mariadb-secret
                 key: mariadb-root-password
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: fuba
+spec:
+  selector:
+    matchLabels:
+      app: fuba
+  podMetricsEndpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
 ---
 apiVersion: v1
 kind: Secret
@@ -66,4 +80,3 @@ metadata:
   name: fuba-config
 data:
   db-host: mariadb.default.svc.cluster.local
-

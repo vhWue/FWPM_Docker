@@ -1,6 +1,7 @@
-Install `kubectl`, `ctlptl`, `kind`, and optionally `k9s`
+# Kubernetes setup
+Install `kubectl`, `ctlptl`, `kind`, `helm` and optionally `k9s`
 
-Setup the cluster:
+Make sure Docker is running, then setup the cluster:
 `ctlptl apply -f k8s/cluster.yaml`
 
 Push the Docker image to the repo:
@@ -16,7 +17,17 @@ Remove MariaDB: `helm uninstall mariadb`
 
 The `values.yaml` contains the SQL init script.
 
-Delete PVC so MariaDB config changes are updated (WARNING: ALL PVCs ARE DELETED!!!):
+If you change something in the `values.yaml`, delete PVC so MariaDB config changes are updated (WARNING: ALL PVCs ARE DELETED!!!):
 `kubectl delete pvc --all`
 
-For testing, port forward service by going into services in k9s and forwarding port.
+For testing, port forward service by going into services in k9s and forwarding the port.
+
+## Prometheus setup
+
+1. Install Prometheus stack (includes Grafana): `helm install prometheus-stack prometheus-community/kube-prometheus-stack -f prometheus-values.yaml`
+2. Start `k9s`, type `:svc` and hit enter to go to services
+3. Scroll to `prometheus-operated` (the one with port 9090) and port forward it (Shift-F)
+4. Prometheus should now be accessible on http://localhost:9090. Go to [targets](http://localhost:9090/targets), you should find podMonitors there.
+5. Port forward the fuba service as well and access some API endpoint, e.g. http://localhost:8000/clubs
+6. In your Prometheus GUI, go to [graph](http://localhost:9090/graph) and type in a query, e.g. `http_requests_total` and press enter.
+   You should now see your accessed endpoint (e.g. /clubs) with a count of total requests to the right.
